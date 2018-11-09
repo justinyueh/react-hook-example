@@ -5,14 +5,9 @@ import './App.css';
 export default function App() {
   const name = useName('Felix');
   const age = useName('18');
-  const color = useName('red');
+  const showTest = useName('clear to unmount Test');
   const width = useWidth();
   useTitle({name: name.value, age: age.value});
-
-  useEffect(() => {
-    console.log('color effect');
-  });
-
 
   return (
     <div className="App">
@@ -29,11 +24,44 @@ export default function App() {
         >
           Learn React
         </a>
-        <input {...name} />
-        <input {...age} />
-        <input {...color} />
-        <div>{width}</div>
+        <div>
+          <FormControl {...name} />
+          <FormControl {...age} />
+          <FormControl {...showTest} />
+          <div>window.innerWidth is {width}</div>
+          {
+            showTest.value ? (
+              <Test />
+            ) : null
+          }
+        </div>
       </header>
+    </div>
+  )
+}
+
+function FormControl(props) {
+  return (
+    <div>
+      <input {...props} />
+    </div>
+  )
+}
+
+const handleClick = () => {console.log('click')};
+
+function Test() {
+  useEffect(() => {
+    console.log('test use effect');
+    document.addEventListener('click', handleClick);
+    return () => {
+      console.log('test remove effect');
+      document.removeEventListener('click', handleClick);
+    };
+  });
+  return (
+    <div style={{ margin: 20 }}>
+      test component, when Test component unmount, will remove test effect.
     </div>
   )
 }
@@ -41,6 +69,7 @@ export default function App() {
 function useName(initial) {
   const [name, setName] = useState(initial);
   const handleNameChange = (e) => setName(e.target.value);
+
   return {
     value: name,
     onChange: handleNameChange,
@@ -52,13 +81,16 @@ function useWidth() {
 
   useEffect(() => {
     const handleResize = () => {
+      console.log('handleResize');
       setWidth(window.innerWidth);
     };
+
     window.addEventListener('resize', handleResize);
-    return () => {
+    return function hello() {
+      console.log('remove resize listener');
       window.removeEventListener('resize', handleResize);
     }
-  });
+  }, [width]);
   return width;
 }
 
